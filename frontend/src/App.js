@@ -18,6 +18,7 @@ import Membership from "@/pages/Membership";
 import AdminDashboard from "@/pages/AdminDashboard";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import UserDashboard from "@/pages/UserDashboard";
+import Jobs from "@/pages/Jobs";
 
 function AppRouter() {
   const location = useLocation();
@@ -38,6 +39,7 @@ function AppRouter() {
           <Route path="/blog/:id" element={<BlogPost />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/employers" element={<EmployerPartnership />} />
+          <Route path="/jobs" element={<Jobs />} />
           <Route path="/membership" element={<Membership />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/payment/success" element={<PaymentSuccess />} />

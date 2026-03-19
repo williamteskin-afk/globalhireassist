@@ -52,6 +52,9 @@ export default function AdminDashboard() {
   const [subscribers, setSubscribers] = useState([]);
   const [blogDialog, setBlogDialog] = useState(false);
   const [blogForm, setBlogForm] = useState({ title: '', content: '', excerpt: '', category: '', image_url: '' });
+  const [jobs, setJobs] = useState([]);
+  const [jobDialog, setJobDialog] = useState(false);
+  const [jobForm, setJobForm] = useState({ title: '', location: '', description: '', visa_type: '', positions: 1 });
 
   const authHeaders = { credentials: 'include' };
 
@@ -74,7 +77,8 @@ export default function AdminDashboard() {
         fetch(`${API}/contact`, opts).then(r => r.ok ? r.json() : []),
         fetch(`${API}/newsletter/subscribers`, opts).then(r => r.ok ? r.json() : []),
       ]);
-      setStats(s); setApplications(a); setPayments(p); setBlogs(b); setEmployers(e); setContacts(c); setSubscribers(sub);
+      const jobsData = await fetch(`${API}/jobs`).then(r => r.json()).catch(() => []);
+      setStats(s); setApplications(a); setPayments(p); setBlogs(b); setEmployers(e); setContacts(c); setSubscribers(sub); setJobs(jobsData);
     } catch { toast.error('Failed to load data'); }
   };
 
@@ -114,6 +118,25 @@ export default function AdminDashboard() {
     } catch { toast.error('Failed to delete'); }
   };
 
+  const createJob = async () => {
+    if (!jobForm.title || !jobForm.location || !jobForm.description || !jobForm.visa_type) {
+      toast.error('Title, location, description & visa type required'); return;
+    }
+    try {
+      const res = await fetch(`${API}/jobs`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, ...authHeaders,
+        body: JSON.stringify({ ...jobForm, positions: parseInt(jobForm.positions) || 1 })
+      });
+      if (res.ok) {
+        const job = await res.json();
+        setJobs(prev => [job, ...prev]);
+        setJobForm({ title: '', location: '', description: '', visa_type: '', positions: 1 });
+        setJobDialog(false);
+        toast.success('Job listing created');
+      }
+    } catch { toast.error('Failed to create job'); }
+  };
+
   if (authLoading || !user?.is_admin) return null;
 
   return (
@@ -150,6 +173,7 @@ export default function AdminDashboard() {
               <TabsTrigger value="payments" className="font-sans text-sm">Payments</TabsTrigger>
               <TabsTrigger value="employers" className="font-sans text-sm">Employers</TabsTrigger>
               <TabsTrigger value="contacts" className="font-sans text-sm">Messages</TabsTrigger>
+              <TabsTrigger value="jobs" className="font-sans text-sm">Jobs</TabsTrigger>
               <TabsTrigger value="subscribers" className="font-sans text-sm">Subscribers</TabsTrigger>
             </TabsList>
 
@@ -327,6 +351,61 @@ export default function AdminDashboard() {
                         </TableRow>
                       ))}
                       {subscribers.length === 0 && <TableRow><TableCell colSpan={2} className="text-center py-8 text-slate-400">No subscribers yet</TableCell></TableRow>}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Jobs Tab */}
+            <TabsContent value="jobs">
+              <Card className="border border-slate-100">
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="text-lg font-serif text-navy">Job Listings ({jobs.length})</CardTitle>
+                  <Dialog open={jobDialog} onOpenChange={setJobDialog}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" className="bg-gold text-navy hover:bg-gold-light" data-testid="create-job-btn"><Plus className="h-4 w-4 mr-1" /> New Job</Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-lg">
+                      <DialogHeader><DialogTitle className="font-serif text-navy">Create Job Listing</DialogTitle></DialogHeader>
+                      <div className="space-y-4">
+                        <div><Label className="font-sans">Job Title *</Label><Input value={jobForm.title} onChange={e => setJobForm({...jobForm, title: e.target.value})} placeholder="e.g. Farm Worker, Hotel Staff" data-testid="job-title-input" /></div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div><Label className="font-sans">Location *</Label><Input value={jobForm.location} onChange={e => setJobForm({...jobForm, location: e.target.value})} placeholder="e.g. Texas, USA" data-testid="job-location-input" /></div>
+                          <div><Label className="font-sans">Positions</Label><Input type="number" min="1" value={jobForm.positions} onChange={e => setJobForm({...jobForm, positions: e.target.value})} data-testid="job-positions-input" /></div>
+                        </div>
+                        <div>
+                          <Label className="font-sans">Visa Type *</Label>
+                          <Select value={jobForm.visa_type} onValueChange={v => setJobForm({...jobForm, visa_type: v})}>
+                            <SelectTrigger data-testid="job-visa-select"><SelectValue placeholder="Select visa type" /></SelectTrigger>
+                            <SelectContent>
+                              {['H-2A Agricultural', 'H-2B Non-Agricultural', 'Other'].map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div><Label className="font-sans">Description *</Label><Textarea value={jobForm.description} onChange={e => setJobForm({...jobForm, description: e.target.value})} placeholder="Job responsibilities, requirements, benefits..." className="min-h-[150px]" data-testid="job-desc-input" /></div>
+                        <Button onClick={createJob} className="w-full bg-gold text-navy hover:bg-gold-light font-semibold" data-testid="job-save-btn">Publish Job Listing</Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </CardHeader>
+                <CardContent className="overflow-x-auto">
+                  <Table>
+                    <TableHeader><TableRow>
+                      <TableHead>Title</TableHead><TableHead>Location</TableHead><TableHead>Visa Type</TableHead><TableHead>Positions</TableHead><TableHead>Status</TableHead><TableHead>Date</TableHead>
+                    </TableRow></TableHeader>
+                    <TableBody>
+                      {jobs.map(j => (
+                        <TableRow key={j.id}>
+                          <TableCell className="font-sans font-medium">{j.title}</TableCell>
+                          <TableCell className="font-sans text-sm">{j.location}</TableCell>
+                          <TableCell><Badge variant="outline">{j.visa_type}</Badge></TableCell>
+                          <TableCell className="font-sans">{j.positions}</TableCell>
+                          <TableCell><Badge className={STATUS_COLORS[j.status]}>{j.status}</Badge></TableCell>
+                          <TableCell className="font-sans text-sm">{new Date(j.created_at).toLocaleDateString()}</TableCell>
+                        </TableRow>
+                      ))}
+                      {jobs.length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-8 text-slate-400">No job listings yet. Create your first one!</TableCell></TableRow>}
                     </TableBody>
                   </Table>
                 </CardContent>

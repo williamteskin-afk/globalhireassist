@@ -1,8 +1,9 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Shield, Globe, FileText, Users, Star, CheckCircle, Phone, Briefcase } from 'lucide-react';
+import { ArrowRight, Shield, Globe, FileText, Users, Star, CheckCircle, Phone, Briefcase, MapPin } from 'lucide-react';
 
 const HERO_BG = "https://images.unsplash.com/photo-1605130284535-11dd9eedc58a?w=1920&q=80";
 
@@ -33,7 +34,14 @@ const TESTIMONIALS = [
   { name: 'James K.', role: 'U.S. Employer', text: 'As an employer, finding reliable seasonal workers was always a challenge. Global Hire Assist connects us with hardworking, pre-screened candidates.' },
 ];
 
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
 export default function Home() {
+  const [latestJobs, setLatestJobs] = useState([]);
+  useEffect(() => {
+    fetch(`${API}/jobs`).then(r => r.json()).then(d => setLatestJobs(d.slice(0, 3))).catch(() => {});
+  }, []);
+
   return (
     <div>
       {/* Hero */}
@@ -136,6 +144,40 @@ export default function Home() {
       </section>
 
       {/* CTA */}
+      {latestJobs.length > 0 && (
+        <section className="py-20 md:py-28 bg-white" data-testid="latest-jobs-section">
+          <div className="container mx-auto px-6">
+            <div className="text-center max-w-2xl mx-auto mb-12">
+              <span className="text-gold font-semibold uppercase tracking-wider text-sm font-sans">Latest Openings</span>
+              <h2 className="text-3xl md:text-4xl font-bold text-navy mt-3">Job Opportunities</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {latestJobs.map(job => (
+                <Link key={job.id} to="/jobs" className="group">
+                  <Card className="card-hover border border-slate-100 h-full">
+                    <CardContent className="p-6">
+                      <Badge className="bg-navy/10 text-navy text-xs mb-3">{job.visa_type}</Badge>
+                      <h3 className="text-lg font-bold text-navy font-serif mb-2">{job.title}</h3>
+                      <div className="flex items-center gap-3 text-sm text-slate-500 font-sans mb-3">
+                        <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-gold" /> {job.location}</span>
+                        <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5 text-gold" /> {job.positions} pos.</span>
+                      </div>
+                      <p className="text-slate-600 text-sm font-sans line-clamp-2">{job.description}</p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+            <div className="text-center mt-8">
+              <Button asChild variant="outline" className="border-navy text-navy hover:bg-navy/5 font-semibold">
+                <Link to="/jobs">View All Jobs <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* CTA Banner */}
       <section className="py-20 md:py-28 bg-white">
         <div className="container mx-auto px-6 text-center">
           <div className="max-w-2xl mx-auto">

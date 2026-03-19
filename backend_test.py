@@ -90,12 +90,23 @@ class GlobalHireAPITester:
         else:
             self.log_result("GET /api/blog/post-001 - Get specific blog post", False, f"Status: {status}")
 
-        # Test jobs endpoint (should return empty list)
+        # Test jobs endpoint (should return seeded jobs)
         success, status, data = self.make_request('GET', 'jobs', expected_status=200)
         if success and isinstance(data, list):
             self.log_result("GET /api/jobs - List jobs", True, f"Found {len(data)} jobs")
+            if len(data) >= 3:
+                # Check if we have expected job titles from seeded data
+                job_titles = [job.get('title', '') for job in data]
+                expected_jobs = ['Seasonal Farm Worker', 'Hotel Housekeeper', 'Landscaping Crew Member']
+                found_jobs = [expected_job for expected_job in expected_jobs if any(expected_job in title for title in job_titles)]
+                if found_jobs:
+                    self.log_result("GET /api/jobs - Seeded jobs verification", True, f"Found expected jobs: {found_jobs}")
+                else:
+                    self.log_result("GET /api/jobs - Seeded jobs verification", False, f"Expected jobs not found, got: {job_titles}")
+            return data
         else:
             self.log_result("GET /api/jobs - List jobs", False, f"Status: {status}")
+            return []
 
     def test_application_submission(self):
         """Test application form submission"""
@@ -186,9 +197,55 @@ class GlobalHireAPITester:
             self.log_result("POST /api/payments/checkout - Create Stripe session", False, f"Status: {status}, Data: {data}")
             return None
 
+    def test_admin_auth_and_jobs(self):
+        """Test admin authentication and job creation"""
+        print("\n🔍 Testing Admin Authentication and Job Creation...")
+        
+        # Set the admin session token provided in the review request
+        admin_token = "admin_session_1773937338274"
+        self.session_token = admin_token
+        
+        # Test admin auth endpoint
+        success, status, data = self.make_request('GET', 'auth/me', expected_status=200)
+        if success and data.get('email') == 'globalhireassist@gmail.com' and data.get('is_admin'):
+            self.log_result("GET /api/auth/me - Admin authentication", True, f"Admin user: {data.get('email')}")
+        else:
+            self.log_result("GET /api/auth/me - Admin authentication", False, f"Status: {status}, Data: {data}")
+            return
+        
+        # Test admin stats
+        success, status, data = self.make_request('GET', 'admin/stats', expected_status=200)
+        if success and 'applications' in data and 'jobs' in data:
+            self.log_result("GET /api/admin/stats - Admin stats", True, f"Jobs count: {data.get('jobs', 0)}")
+        else:
+            self.log_result("GET /api/admin/stats - Admin stats", False, f"Status: {status}")
+        
+        # Test job creation
+        job_data = {
+            "title": "Test Software Engineer Position",
+            "location": "New York, NY",
+            "description": "Test job description for software engineering position. Requires 3+ years experience in Python and FastAPI.",
+            "visa_type": "H-2B Non-Agricultural",
+            "positions": 2
+        }
+        
+        success, status, data = self.make_request('POST', 'jobs', data=job_data, expected_status=200)
+        if success and data.get('id') and data.get('title') == job_data['title']:
+            self.log_result("POST /api/jobs - Create job listing", True, f"Job ID: {data.get('id')}")
+            return data.get('id')
+        else:
+            self.log_result("POST /api/jobs - Create job listing", False, f"Status: {status}, Data: {data}")
+            return None
+        
+        # Clear admin token after testing
+        self.session_token = None
+
     def test_auth_endpoints_without_auth(self):
         """Test auth-protected endpoints should return 401"""
         print("\n🔍 Testing Auth-Protected Endpoints (should fail without auth)...")
+        
+        # Make sure no token is set
+        self.session_token = None
         
         # These should all return 401 without authentication
         protected_endpoints = [
@@ -221,6 +278,7 @@ class GlobalHireAPITester:
         self.test_newsletter_subscription()
         self.test_employer_registration()
         self.test_stripe_checkout()
+        self.test_admin_auth_and_jobs()
         self.test_auth_endpoints_without_auth()
         
         # Print summary
