@@ -1,0 +1,159 @@
+{
+  "brand_identity": {
+    "name": "Global Hire Assist",
+    "mission": "Connecting talent with opportunity through trusted visa and recruitment services.",
+    "emotional_archetype": "The Authority (Swiss & High-Contrast) + The Luxury (Jewel Accents)",
+    "core_values": ["Trust", "Precision", "Global Reach", "Opportunity"],
+    "tone": "Professional, Authoritative, Reassuring, Premium"
+  },
+  "typography": {
+    "headings": {
+      "family": "Libre Baskerville, serif",
+      "weights": ["400", "700"],
+      "usage": "All section headings (H1-H3). Use tight tracking (-0.02em) for H1.",
+      "fallback": "Georgia, serif"
+    },
+    "body": {
+      "family": "Manrope, sans-serif",
+      "weights": ["400", "500", "600"],
+      "usage": "Paragraphs, navigation, buttons, and form labels.",
+      "fallback": "system-ui, sans-serif"
+    },
+    "scale": {
+      "h1": "text-4xl md:text-6xl font-bold leading-tight",
+      "h2": "text-3xl md:text-4xl font-bold leading-snug",
+      "h3": "text-2xl md:text-3xl font-semibold",
+      "body_lg": "text-lg leading-relaxed",
+      "body": "text-base leading-relaxed",
+      "caption": "text-sm text-muted-foreground uppercase tracking-wider"
+    }
+  },
+  "colors": {
+    "palette": {
+      "primary": {
+        "DEFAULT": "#0B3D91",
+        "foreground": "#FFFFFF",
+        "description": "Navy Blue - Use for primary actions, header backgrounds, and footer."
+      },
+      "secondary": {
+        "DEFAULT": "#C5A653",
+        "foreground": "#0B3D91",
+        "description": "Gold - Use sparingly for CTAs, success states, and accent borders."
+      },
+      "background": {
+        "DEFAULT": "#FFFFFF",
+        "paper": "#F8FAFC",
+        "dark": "#020617"
+      },
+      "text": {
+        "primary": "#0F172A",
+        "secondary": "#475569",
+        "muted": "#94A3B8"
+      },
+      "border": {
+        "DEFAULT": "#E2E8F0",
+        "active": "#C5A653"
+      }
+    },
+    "gradients": {
+      "hero_overlay": "linear-gradient(to right, rgba(11, 61, 145, 0.9), rgba(11, 61, 145, 0.7))",
+      "gold_shimmer": "linear-gradient(45deg, #C5A653 0%, #E6C870 50%, #C5A653 100%)"
+    }
+  },
+  "layout_strategies": {
+    "spacing": {
+      "section_padding": "py-20 md:py-32",
+      "container_padding": "px-6 md:px-12",
+      "element_gap": "gap-6 md:gap-12"
+    },
+    "grids": {
+      "services_bento": "grid grid-cols-1 md:grid-cols-3 gap-6",
+      "hero_tetris": "grid grid-cols-1 lg:grid-cols-12 gap-8 items-center",
+      "form_layout": "max-w-2xl mx-auto space-y-6"
+    },
+    "surfaces": {
+      "card": "bg-white border border-border shadow-sm hover:shadow-md transition-all duration-300 hover:border-secondary/50",
+      "glass_header": "bg-white/80 backdrop-blur-md border-b border-white/20 sticky top-0 z-50",
+      "dark_section": "bg-[#0B3D91] text-white"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-secondary text-[#0B3D91] hover:bg-secondary/90 font-semibold rounded-md px-8 py-6 shadow-sm hover:shadow-gold/20",
+      "secondary": "bg-transparent border-2 border-white text-white hover:bg-white/10 rounded-md px-8 py-6 font-semibold",
+      "outline": "border-2 border-primary text-primary hover:bg-primary/5 rounded-md px-6 py-4"
+    },
+    "cards": {
+      "program_card": "p-8 rounded-lg bg-white border border-slate-100 shadow-[0_4px_20px_-12px_rgba(0,0,0,0.1)] hover:-translate-y-1 transition-transform duration-300",
+      "testimonial_card": "p-8 rounded-xl bg-slate-50 border-l-4 border-secondary italic font-serif"
+    },
+    "inputs": {
+      "default": "h-12 rounded-md border-slate-200 focus:border-secondary focus:ring-1 focus:ring-secondary/50 bg-white"
+    },
+    "icons": {
+      "library": "lucide-react",
+      "style": "stroke-width={1.5} className='text-secondary'"
+    }
+  },
+  "assets": {
+    "logo_url": "https://customer-assets.emergentagent.com/job_hire-assist-portal/artifacts/z27n0xxm_22178.png",
+    "images": {
+      "hero_bg": {
+        "url": "https://images.unsplash.com/photo-1605130284535-11dd9eedc58a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxOTJ8MHwxfHNlYXJjaHw0fHx1c2ElMjBjaXR5JTIwc2t5bGluZSUyMHN0YXR1ZSUyMG9mJTIwbGliZXJ0eXxlbnwwfHx8fDE3NzM5MzI1ODR8MA&ixlib=rb-4.1.0&q=85",
+        "alt": "USA City Skyline",
+        "usage": "Hero section background or side image"
+      },
+      "work_visa_h2a": {
+        "url": "https://images.unsplash.com/photo-1752242931857-93f947f304b7?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzl8MHwxfHNlYXJjaHwzfHxhZ3JpY3VsdHVyYWwlMjB3b3JrZXIlMjBmYXJtJTIwdXNhfGVufDB8fHx8MTc3MzkzMjU4NXww&ixlib=rb-4.1.0&q=85",
+        "alt": "Agricultural Farm",
+        "usage": "H-2A Program Card or Page"
+      },
+      "work_visa_h2b": {
+        "url": "https://images.unsplash.com/photo-1759038085950-1234ca8f5fed?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTZ8MHwxfHNlYXJjaHwyfHxob3RlbCUyMHN0YWZmJTIwaG9zcGl0YWxpdHklMjBzZXJ2aWNlJTIwcHJvZmVzc2lvbmFsfGVufDB8fHx8MTc3MzkzMjU5OHww&ixlib=rb-4.1.0&q=85",
+        "alt": "Hospitality/Hotel Service",
+        "usage": "H-2B Program Card or Page (Non-agricultural)"
+      },
+      "study_visa": {
+        "url": "https://images.unsplash.com/photo-1758270703250-80a6387439ba?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzOTB8MHwxfHNlYXJjaHwzfHxoYXBweSUyMHN0dWRlbnRzJTIwdW5pdmVyc2l0eSUyMGNhbXB1cyUyMGdyYWR1YXRpb258ZW58MHx8fHwxNzczOTMyNTg2fDA&ixlib=rb-4.1.0&q=85",
+        "alt": "Happy Graduates",
+        "usage": "Study Visa Program Card"
+      },
+      "tourist_visa": {
+        "url": "https://images.unsplash.com/photo-1702306257553-3edb907edd0a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODh8MHwxfHNlYXJjaHwxfHx0b3VyaXN0JTIwdHJhdmVsZXIlMjBhaXJwb3J0JTIwbHVnZ2FnZSUyMGhhcHB5fGVufDB8fHx8MTc3MzkzMjU5OHww&ixlib=rb-4.1.0&q=85",
+        "alt": "Traveler with Luggage",
+        "usage": "Tourist/Visit Visa Program Card"
+      },
+      "employers": {
+        "url": "https://images.unsplash.com/photo-1758873271761-6cfe9b4f000c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTN8MHwxfHNlYXJjaHwxfHxkaXZlcnNlJTIwcHJvZmVzc2lvbmFsJTIwd29ya2VycyUyMG1lZXRpbmd8ZW58MHx8fHwxNzczOTMyNTg1fDA&ixlib=rb-4.1.0&q=85",
+        "alt": "Diverse Business Meeting",
+        "usage": "Employer Partnership Page"
+      },
+      "visa_docs": {
+        "url": "https://images.unsplash.com/photo-1744580389912-e424d67b9749?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAxODF8MHwxfHNlYXJjaHwzfHxwYXNzcG9ydCUyMHZpc2ElMjBzdGFtcCUyMGRvY3VtZW50JTIwdHJhdmVsfGVufDB8fHx8MTc3MzkzMjU5OXww&ixlib=rb-4.1.0&q=85",
+        "alt": "Passport and Visa",
+        "usage": "Application Form Header or Background"
+      }
+    }
+  },
+  "interactions": {
+    "hover_states": "Buttons and cards must have a lift effect (-translate-y-1) and shadow increase on hover.",
+    "page_transitions": "Use simple opacity fade-in (0.3s ease-out) for all pages.",
+    "scroll_effects": "Sticky header must blur background. Reveal elements on scroll using Intersection Observer (slide-up fade)."
+  },
+  "accessibility_checklist": [
+    "Ensure 4.5:1 contrast ratio for all text.",
+    "Alt text mandatory for all images.",
+    "Focus rings must be visible (use ring-offset-2 ring-secondary).",
+    "Semantic HTML (main, section, nav, footer) is mandatory.",
+    "Use data-testid for all interactive elements."
+  ],
+  "universal_guidelines": [
+    "Do not use generic centered layouts for everything. Use asymmetry.",
+    "Use 2-3x more spacing than typical designs.",
+    "Every interaction needs micro-animations.",
+    "Use 'sonner' for toasts.",
+    "Component Reuse: Prioritize Shadcn components.",
+    "Theme: Prefer Light Mode for trust, but support Dark Mode for accessibility.",
+    "No transparent backgrounds on surfaces with content underneath."
+  ]
+}
