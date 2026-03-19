@@ -401,10 +401,14 @@ async def send_sms_notification(phone, message):
     if not all([account_sid, auth_token, from_number]):
         logger.info(f"Twilio not configured. Would send to {phone}: {message}")
         return {"status": "skipped", "reason": "Twilio not configured"}
-    from twilio.rest import Client as TwilioClient
-    twilio_client = TwilioClient(account_sid, auth_token)
-    msg = twilio_client.messages.create(body=message, from_=from_number, to=phone)
-    return {"status": "sent", "sid": msg.sid}
+    try:
+        from twilio.rest import Client as TwilioClient
+        twilio_client = TwilioClient(account_sid, auth_token)
+        msg = twilio_client.messages.create(body=message, from_=from_number, to=phone)
+        return {"status": "sent", "sid": msg.sid}
+    except Exception as e:
+        logger.error(f"Twilio SMS error: {e}")
+        return {"status": "error", "detail": str(e)}
 
 @api_router.post("/notifications/sms")
 async def send_sms(request: Request):
