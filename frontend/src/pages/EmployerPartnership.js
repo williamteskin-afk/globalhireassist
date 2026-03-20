@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Building2, Send, CheckCircle, Users, Briefcase, Shield } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -53,6 +54,7 @@ export default function EmployerPartnership() {
 
   return (
     <div>
+      <SEO title="Employer Partnership" path="/employers" description="Partner with Global Hire Assist to find reliable, pre-screened international workers for your business. Register as an employer today." />
       <section className="bg-navy text-white py-20 md:py-28">
         <div className="container mx-auto px-6">
           <span className="text-gold font-semibold uppercase tracking-wider text-sm font-sans">For Employers</span>

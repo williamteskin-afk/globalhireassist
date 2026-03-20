@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Calendar } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import SEO from '@/components/SEO';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -21,6 +22,7 @@ export default function Blog() {
 
   return (
     <div>
+      <SEO title="Blog" path="/blog" description="Stay informed with the latest visa news, immigration tips, success stories, and updates from Global Hire Assist." />
       <section className="bg-navy text-white py-20 md:py-28">
         <div className="container mx-auto px-6">
           <span className="text-gold font-semibold uppercase tracking-wider text-sm font-sans">Our Blog</span>

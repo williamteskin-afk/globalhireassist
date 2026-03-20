@@ -429,6 +429,70 @@ async def seed_data():
         logger.info("Seeded blog posts")
 
 app.include_router(api_router)
+
+# --- Sitemap & Robots (outside /api prefix for SEO) ---
+from fastapi.responses import Response as FastResponse
+
+@app.get("/api/sitemap.xml")
+async def sitemap(request: Request):
+    base_url = str(request.headers.get("x-forwarded-proto", "https")) + "://" + str(request.headers.get("host", "globalhireassist.com"))
+
+    static_pages = [
+        {"loc": "/", "priority": "1.0", "changefreq": "weekly"},
+        {"loc": "/about", "priority": "0.8", "changefreq": "monthly"},
+        {"loc": "/programs", "priority": "0.9", "changefreq": "weekly"},
+        {"loc": "/programs/h2a-visa", "priority": "0.8", "changefreq": "monthly"},
+        {"loc": "/programs/h2b-visa", "priority": "0.8", "changefreq": "monthly"},
+        {"loc": "/programs/tourist-visa", "priority": "0.8", "changefreq": "monthly"},
+        {"loc": "/programs/visit-visa", "priority": "0.8", "changefreq": "monthly"},
+        {"loc": "/programs/study-visa", "priority": "0.8", "changefreq": "monthly"},
+        {"loc": "/apply", "priority": "0.9", "changefreq": "monthly"},
+        {"loc": "/jobs", "priority": "0.9", "changefreq": "daily"},
+        {"loc": "/blog", "priority": "0.8", "changefreq": "weekly"},
+        {"loc": "/contact", "priority": "0.7", "changefreq": "monthly"},
+        {"loc": "/employers", "priority": "0.7", "changefreq": "monthly"},
+        {"loc": "/membership", "priority": "0.7", "changefreq": "monthly"},
+    ]
+
+    blog_posts = await db.blog_posts.find({}, {"_id": 0, "id": 1, "created_at": 1}).to_list(500)
+    jobs = await db.job_listings.find({"status": "active"}, {"_id": 0, "id": 1, "created_at": 1}).to_list(500)
+
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+
+    for page in static_pages:
+        xml += f'  <url>\n    <loc>{base_url}{page["loc"]}</loc>\n    <priority>{page["priority"]}</priority>\n    <changefreq>{page["changefreq"]}</changefreq>\n  </url>\n'
+
+    for post in blog_posts:
+        lastmod = post.get("created_at", "")[:10] if post.get("created_at") else ""
+        xml += f'  <url>\n    <loc>{base_url}/blog/{post["id"]}</loc>\n    <priority>0.6</priority>\n    <changefreq>monthly</changefreq>\n'
+        if lastmod:
+            xml += f'    <lastmod>{lastmod}</lastmod>\n'
+        xml += '  </url>\n'
+
+    for job in jobs:
+        lastmod = job.get("created_at", "")[:10] if job.get("created_at") else ""
+        xml += f'  <url>\n    <loc>{base_url}/jobs#{job["id"]}</loc>\n    <priority>0.6</priority>\n    <changefreq>weekly</changefreq>\n'
+        if lastmod:
+            xml += f'    <lastmod>{lastmod}</lastmod>\n'
+        xml += '  </url>\n'
+
+    xml += '</urlset>'
+    return FastResponse(content=xml, media_type="application/xml")
+
+@app.get("/api/robots.txt")
+async def robots(request: Request):
+    base_url = str(request.headers.get("x-forwarded-proto", "https")) + "://" + str(request.headers.get("host", "globalhireassist.com"))
+    content = f"""User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /payment/
+
+Sitemap: {base_url}/api/sitemap.xml
+"""
+    return FastResponse(content=content, media_type="text/plain")
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,

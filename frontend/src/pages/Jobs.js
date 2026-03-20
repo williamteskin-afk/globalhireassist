@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Briefcase, MapPin, Users, Search, ArrowRight, Clock, Filter } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -55,6 +56,7 @@ export default function Jobs() {
 
   return (
     <div>
+      <SEO title="Job Listings" path="/jobs" description="Browse verified job opportunities from U.S. employer partners. Find H-2A agricultural, H-2B non-agricultural, and other visa-sponsored positions." />
       {/* Hero */}
       <section className="bg-navy text-white py-20 md:py-28">
         <div className="container mx-auto px-6">

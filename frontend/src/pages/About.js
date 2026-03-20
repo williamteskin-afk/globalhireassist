@@ -1,5 +1,6 @@
 import { Shield, Globe, Award, Users, MapPin, Target, Heart } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import SEO from '@/components/SEO';
 
 const TEAM_VALUES = [
   { icon: Shield, title: 'Integrity', desc: 'We maintain the highest ethical standards in every interaction and transaction.' },
@@ -11,6 +12,11 @@ const TEAM_VALUES = [
 export default function About() {
   return (
     <div>
+      <SEO
+        title="About Us"
+        path="/about"
+        description="Learn about Global Hire Assist, a visa consultancy based in Mesa, Arizona dedicated to connecting talented individuals with opportunities in the United States."
+      />
       {/* Hero */}
       <section className="bg-navy text-white py-20 md:py-28">
         <div className="container mx-auto px-6">

@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 export const PROGRAMS_DATA = [
   {
@@ -55,6 +56,11 @@ export const PROGRAMS_DATA = [
 export default function Programs() {
   return (
     <div>
+      <SEO
+        title="Visa Programs"
+        path="/programs"
+        description="Explore our visa programs: H-2A Agricultural Work Visa, H-2B Non-Agricultural Work Visa, Tourist Visa, Visit Visa, and Study Visa. Expert guidance for every step."
+      />
       <section className="bg-navy text-white py-20 md:py-28">
         <div className="container mx-auto px-6">
           <span className="text-gold font-semibold uppercase tracking-wider text-sm font-sans">Our Programs</span>

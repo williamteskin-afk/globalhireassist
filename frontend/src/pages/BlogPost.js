@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Calendar, User } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -37,6 +38,13 @@ export default function BlogPost() {
 
   return (
     <div>
+      <SEO
+        title={post.title}
+        path={`/blog/${id}`}
+        description={post.excerpt || post.content?.substring(0, 160)}
+        image={post.image_url}
+        type="article"
+      />
       <section className="bg-navy text-white py-16 md:py-20">
         <div className="container mx-auto px-6 max-w-3xl">
           <Link to="/blog" className="inline-flex items-center gap-2 text-white/80 hover:text-white text-sm mb-6 font-sans transition-colors">

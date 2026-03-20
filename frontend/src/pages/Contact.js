@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Send, MapPin, Phone, Mail, MessageSquare } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -31,6 +32,7 @@ export default function Contact() {
 
   return (
     <div>
+      <SEO title="Contact Us" path="/contact" description="Get in touch with Global Hire Assist for visa consultation, application support, or general inquiries. Call, email, or WhatsApp us today." />
       <section className="bg-navy text-white py-20 md:py-28">
         <div className="container mx-auto px-6">
           <span className="text-gold font-semibold uppercase tracking-wider text-sm font-sans">Get in Touch</span>

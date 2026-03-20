@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Shield, Globe, FileText, Users, Star, CheckCircle, Phone, Briefcase, MapPin } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 const HERO_BG = "https://images.unsplash.com/photo-1605130284535-11dd9eedc58a?w=1920&q=80";
 
@@ -44,6 +45,11 @@ export default function Home() {
 
   return (
     <div>
+      <SEO
+        path="/"
+        description="Global Hire Assist connects job seekers with overseas work opportunities in the United States. Apply for H-2A, H-2B, Tourist, Visit, and Study visas with expert guidance."
+        image="https://images.unsplash.com/photo-1605130284535-11dd9eedc58a?w=1200&q=80"
+      />
       {/* Hero */}
       <section className="relative min-h-[92vh] flex items-center overflow-hidden" data-testid="hero-section">
         <div className="absolute inset-0 z-0">

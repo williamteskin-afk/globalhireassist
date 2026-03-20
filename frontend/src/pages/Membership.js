@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Star, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
+import SEO from '@/components/SEO';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -62,6 +63,7 @@ export default function Membership() {
 
   return (
     <div>
+      <SEO title="Service Plans & Pricing" path="/membership" description="Transparent pricing for visa consultation, application processing, and premium support. Choose the plan that fits your immigration needs." />
       <section className="bg-navy text-white py-20 md:py-28">
         <div className="container mx-auto px-6 text-center">
           <span className="text-gold font-semibold uppercase tracking-wider text-sm font-sans">Pricing</span>

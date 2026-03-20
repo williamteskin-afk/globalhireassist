@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Send, CheckCircle } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -84,6 +85,7 @@ export default function Apply() {
     <div>
       <section className="bg-navy text-white py-16 md:py-20">
         <div className="container mx-auto px-6">
+          <SEO title="Apply Now" path="/apply" description="Start your visa application with Global Hire Assist. Apply for H-2A, H-2B, Tourist, Visit, or Study visas with expert guidance." />
           <span className="text-gold font-semibold uppercase tracking-wider text-sm font-sans">Apply Now</span>
           <h1 className="text-4xl sm:text-5xl font-bold mt-3 leading-tight">Start Your Application</h1>
           <p className="text-white/80 text-lg mt-4 max-w-xl font-sans">Fill out the form below and our team will guide you through the process.</p>

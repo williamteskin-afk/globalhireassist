@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { CheckCircle, Clock, DollarSign, ArrowRight, ArrowLeft } from 'lucide-react';
+import SEO from '@/components/SEO';
 
 export default function ProgramDetail() {
   const { slug } = useParams();
@@ -22,6 +23,12 @@ export default function ProgramDetail() {
 
   return (
     <div>
+      <SEO
+        title={program.title}
+        path={`/programs/${slug}`}
+        description={program.desc}
+        image={program.image}
+      />
       {/* Hero */}
       <section className="relative h-[50vh] min-h-[400px] flex items-end">
         <div className="absolute inset-0">
