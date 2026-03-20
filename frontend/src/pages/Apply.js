@@ -8,8 +8,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Send, CheckCircle } from 'lucide-react';
+import { Send, CheckCircle, ArrowRight } from 'lucide-react';
 import SEO from '@/components/SEO';
+import DocumentUpload from '@/components/DocumentUpload';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -26,6 +27,7 @@ export default function Apply() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [applicationId, setApplicationId] = useState(null);
   const [form, setForm] = useState({
     full_name: user?.name || '',
     email: user?.email || '',
@@ -49,6 +51,8 @@ export default function Apply() {
         body: JSON.stringify(form),
       });
       if (res.ok) {
+        const data = await res.json();
+        setApplicationId(data.id);
         setSubmitted(true);
         toast.success('Application submitted successfully!');
       } else {
@@ -63,20 +67,37 @@ export default function Apply() {
 
   if (submitted) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center bg-slate-50">
-        <Card className="max-w-md w-full mx-4 text-center shadow-sm border border-slate-100">
-          <CardContent className="p-10">
-            <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="h-8 w-8 text-green-600" />
-            </div>
-            <h2 className="text-2xl font-bold text-navy font-serif">Application Submitted!</h2>
-            <p className="text-slate-600 mt-3 font-sans">We have received your application. Our team will review it and get back to you within 2-3 business days.</p>
-            <div className="flex gap-3 justify-center mt-8">
-              <Button onClick={() => navigate('/membership')} className="bg-gold text-navy hover:bg-gold-light font-semibold">View Payment Plans</Button>
-              <Button variant="outline" onClick={() => navigate('/')}>Back to Home</Button>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="min-h-[70vh] bg-slate-50 py-16">
+        <div className="container mx-auto px-6 max-w-2xl">
+          <Card className="shadow-sm border border-slate-100">
+            <CardContent className="p-8 md:p-10">
+              <div className="text-center mb-8">
+                <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle className="h-8 w-8 text-green-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-navy font-serif">Application Submitted!</h2>
+                <p className="text-slate-600 mt-2 font-sans">Application ID: <strong className="text-navy">{applicationId}</strong></p>
+                <p className="text-slate-500 text-sm mt-1 font-sans">Our team will review it and get back to you within 2-3 business days.</p>
+              </div>
+
+              {/* Document Upload Section */}
+              <div className="border-t border-slate-100 pt-8">
+                <h3 className="text-lg font-bold text-navy font-serif mb-2">Upload Supporting Documents</h3>
+                <p className="text-sm text-slate-500 font-sans mb-5">
+                  Upload your passport, ID, recommendation letters, or any other supporting documents to speed up the review process.
+                </p>
+                <DocumentUpload applicationId={applicationId} />
+              </div>
+
+              <div className="flex gap-3 justify-center mt-8 pt-6 border-t border-slate-100">
+                <Button onClick={() => navigate('/membership')} className="bg-gold text-navy hover:bg-gold-light font-semibold">
+                  View Payment Plans <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+                <Button variant="outline" onClick={() => navigate('/')}>Back to Home</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }

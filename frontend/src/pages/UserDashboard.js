@@ -4,7 +4,9 @@ import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { FileText, CreditCard, ArrowRight, Clock } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { FileText, CreditCard, ArrowRight, Clock, Paperclip, Upload } from 'lucide-react';
+import DocumentUpload from '@/components/DocumentUpload';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -21,6 +23,7 @@ export default function UserDashboard() {
   const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [uploadApp, setUploadApp] = useState(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -87,15 +90,39 @@ export default function UserDashboard() {
                           </p>
                         </div>
                       </div>
-                      <Badge className={STATUS_COLORS[app.status] || 'bg-slate-100 text-slate-800'} data-testid={`status-${app.id}`}>
-                        {app.status}
-                      </Badge>
+                      <div className="flex items-center gap-3">
+                        <Button size="sm" variant="outline" className="text-xs border-gold text-navy hover:bg-gold/10" onClick={() => setUploadApp(app)} data-testid={`upload-docs-${app.id}`}>
+                          <Upload className="h-3 w-3 mr-1" /> Documents
+                        </Button>
+                        <Badge className={STATUS_COLORS[app.status] || 'bg-slate-100 text-slate-800'} data-testid={`status-${app.id}`}>
+                          {app.status}
+                        </Badge>
+                      </div>
                     </div>
                   ))}
                 </div>
               )}
             </CardContent>
           </Card>
+
+          {/* Upload Documents Dialog */}
+          <Dialog open={!!uploadApp} onOpenChange={open => !open && setUploadApp(null)}>
+            <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+              {uploadApp && (
+                <>
+                  <DialogHeader>
+                    <DialogTitle className="font-serif text-navy">Upload Documents</DialogTitle>
+                    <p className="text-sm text-slate-500 font-sans">
+                      <strong>{uploadApp.visa_type}</strong> — Application ID: {uploadApp.id}
+                    </p>
+                  </DialogHeader>
+                  <div className="mt-2">
+                    <DocumentUpload applicationId={uploadApp.id} />
+                  </div>
+                </>
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       </section>
     </div>

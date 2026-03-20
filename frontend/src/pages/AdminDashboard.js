@@ -12,7 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { FileText, CreditCard, Users, Mail, Newspaper, Briefcase, BarChart3, Plus, Trash2, Pencil, Eye, ExternalLink, Image, X } from 'lucide-react';
+import { FileText, CreditCard, Users, Mail, Newspaper, Briefcase, BarChart3, Plus, Trash2, Pencil, Eye, ExternalLink, Image, X, Download, Paperclip } from 'lucide-react';
+import { DocumentList } from '@/components/DocumentUpload';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -55,6 +56,7 @@ export default function AdminDashboard() {
   const [editingPost, setEditingPost] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [previewPost, setPreviewPost] = useState(null);
+  const [selectedApp, setSelectedApp] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [jobDialog, setJobDialog] = useState(false);
   const [jobForm, setJobForm] = useState({ title: '', location: '', description: '', visa_type: '', positions: 1 });
@@ -219,7 +221,7 @@ export default function AdminDashboard() {
                 <CardContent className="overflow-x-auto">
                   <Table>
                     <TableHeader><TableRow>
-                      <TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Phone</TableHead><TableHead>Visa Type</TableHead><TableHead>Date</TableHead><TableHead>Status</TableHead><TableHead>Action</TableHead>
+                      <TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Phone</TableHead><TableHead>Visa Type</TableHead><TableHead>Date</TableHead><TableHead>Status</TableHead><TableHead>Actions</TableHead>
                     </TableRow></TableHeader>
                     <TableBody>
                       {applications.map(app => (
@@ -231,12 +233,17 @@ export default function AdminDashboard() {
                           <TableCell className="font-sans text-sm">{new Date(app.created_at).toLocaleDateString()}</TableCell>
                           <TableCell><Badge className={STATUS_COLORS[app.status]}>{app.status}</Badge></TableCell>
                           <TableCell>
-                            <Select value={app.status} onValueChange={v => updateAppStatus(app.id, v)}>
-                              <SelectTrigger className="w-32 h-8 text-xs"><SelectValue /></SelectTrigger>
-                              <SelectContent>
-                                {['pending','reviewing','processing','approved','rejected'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                              </SelectContent>
-                            </Select>
+                            <div className="flex items-center gap-2">
+                              <Select value={app.status} onValueChange={v => updateAppStatus(app.id, v)}>
+                                <SelectTrigger className="w-28 h-8 text-xs"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  {['pending','reviewing','processing','approved','rejected'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                                </SelectContent>
+                              </Select>
+                              <Button size="icon" variant="ghost" className="h-8 w-8 text-slate-400 hover:text-navy" onClick={() => setSelectedApp(app)} data-testid={`view-app-${app.id}`}>
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -245,6 +252,64 @@ export default function AdminDashboard() {
                   </Table>
                 </CardContent>
               </Card>
+
+              {/* Application Detail Dialog */}
+              <Dialog open={!!selectedApp} onOpenChange={open => !open && setSelectedApp(null)}>
+                <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+                  {selectedApp && (
+                    <>
+                      <DialogHeader>
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge className={STATUS_COLORS[selectedApp.status]}>{selectedApp.status}</Badge>
+                          <span className="text-xs text-slate-400 font-sans">ID: {selectedApp.id}</span>
+                        </div>
+                        <DialogTitle className="font-serif text-navy text-xl">{selectedApp.full_name}</DialogTitle>
+                      </DialogHeader>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-3">
+                        <div className="space-y-4">
+                          <div>
+                            <p className="text-xs uppercase tracking-wider text-slate-400 font-sans font-semibold">Visa Type</p>
+                            <p className="text-sm text-navy font-sans font-medium mt-1">{selectedApp.visa_type}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-wider text-slate-400 font-sans font-semibold">Email</p>
+                            <p className="text-sm text-navy font-sans mt-1">{selectedApp.email}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-wider text-slate-400 font-sans font-semibold">Phone</p>
+                            <p className="text-sm text-navy font-sans mt-1">{selectedApp.phone}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-wider text-slate-400 font-sans font-semibold">Submitted</p>
+                            <p className="text-sm text-navy font-sans mt-1">{new Date(selectedApp.created_at).toLocaleString()}</p>
+                          </div>
+                          {selectedApp.message && (
+                            <div>
+                              <p className="text-xs uppercase tracking-wider text-slate-400 font-sans font-semibold">Message</p>
+                              <p className="text-sm text-slate-600 font-sans mt-1 leading-relaxed">{selectedApp.message}</p>
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-xs uppercase tracking-wider text-slate-400 font-sans font-semibold mb-3 flex items-center gap-1">
+                            <Paperclip className="h-3 w-3" /> Documents
+                          </p>
+                          <DocumentList applicationId={selectedApp.id} />
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-100">
+                        <Select value={selectedApp.status} onValueChange={v => { updateAppStatus(selectedApp.id, v); setSelectedApp(prev => ({ ...prev, status: v })); }}>
+                          <SelectTrigger className="w-40 h-9 text-sm"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {['pending','reviewing','processing','approved','rejected'].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                        <Button variant="outline" onClick={() => setSelectedApp(null)}>Close</Button>
+                      </div>
+                    </>
+                  )}
+                </DialogContent>
+              </Dialog>
             </TabsContent>
 
             {/* Blog Tab */}

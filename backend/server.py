@@ -1,4 +1,5 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Request, Response
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, UploadFile, File
+from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -23,6 +24,11 @@ db = client[os.environ['DB_NAME']]
 
 stripe_api_key = os.environ.get('STRIPE_API_KEY', '')
 ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'globalhireassist@gmail.com')
+
+UPLOAD_DIR = ROOT_DIR / 'uploads'
+UPLOAD_DIR.mkdir(exist_ok=True)
+ALLOWED_EXTENSIONS = {'.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx', '.webp'}
+MAX_FILE_SIZE = 10 * 1024 * 1024
 
 SERVICE_PACKAGES = {
     "consultation": {"name": "Visa Consultation", "amount": 75.00, "currency": "usd"},
@@ -223,6 +229,61 @@ async def get_my_applications(request: Request):
     user = await require_user(request)
     apps = await db.applications.find({"email": user["email"]}, {"_id": 0}).sort("created_at", -1).to_list(100)
     return apps
+
+# --- Document Upload Routes ---
+@api_router.post("/applications/{app_id}/documents")
+async def upload_document(app_id: str, file: UploadFile = File(...)):
+    app_doc = await db.applications.find_one({"id": app_id}, {"_id": 0})
+    if not app_doc:
+        raise HTTPException(status_code=404, detail="Application not found")
+    ext = Path(file.filename).suffix.lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=400, detail=f"File type not allowed. Allowed: {', '.join(ALLOWED_EXTENSIONS)}")
+    content = await file.read()
+    if len(content) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=400, detail="File too large. Maximum 10MB.")
+    doc_id = str(uuid.uuid4())[:8]
+    safe_filename = f"{doc_id}_{file.filename.replace(' ', '_')}"
+    file_path = UPLOAD_DIR / safe_filename
+    with open(file_path, 'wb') as f:
+        f.write(content)
+    doc = {
+        "id": doc_id, "application_id": app_id,
+        "filename": file.filename, "stored_filename": safe_filename,
+        "content_type": file.content_type or "application/octet-stream",
+        "size": len(content),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.documents.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+@api_router.get("/applications/{app_id}/documents")
+async def list_documents(app_id: str):
+    docs = await db.documents.find({"application_id": app_id}, {"_id": 0}).sort("created_at", -1).to_list(100)
+    return docs
+
+@api_router.get("/documents/{doc_id}/download")
+async def download_document(doc_id: str):
+    doc = await db.documents.find_one({"id": doc_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+    file_path = UPLOAD_DIR / doc["stored_filename"]
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found on disk")
+    return FileResponse(path=str(file_path), filename=doc["filename"], media_type=doc.get("content_type", "application/octet-stream"))
+
+@api_router.delete("/documents/{doc_id}")
+async def delete_document(doc_id: str, request: Request):
+    await require_admin(request)
+    doc = await db.documents.find_one({"id": doc_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+    file_path = UPLOAD_DIR / doc["stored_filename"]
+    if file_path.exists():
+        file_path.unlink()
+    await db.documents.delete_one({"id": doc_id})
+    return {"message": "Document deleted"}
 
 # --- Payment Routes ---
 @api_router.post("/payments/checkout")
