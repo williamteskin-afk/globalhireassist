@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { FileText, CreditCard, Users, Mail, Newspaper, Briefcase, BarChart3, Plus, Trash2 } from 'lucide-react';
+import { FileText, CreditCard, Users, Mail, Newspaper, Briefcase, BarChart3, Plus, Trash2, Pencil, Eye, ExternalLink, Image, X } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -52,6 +52,9 @@ export default function AdminDashboard() {
   const [subscribers, setSubscribers] = useState([]);
   const [blogDialog, setBlogDialog] = useState(false);
   const [blogForm, setBlogForm] = useState({ title: '', content: '', excerpt: '', category: '', image_url: '' });
+  const [editingPost, setEditingPost] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [previewPost, setPreviewPost] = useState(null);
   const [jobs, setJobs] = useState([]);
   const [jobDialog, setJobDialog] = useState(false);
   const [jobForm, setJobForm] = useState({ title: '', location: '', description: '', visa_type: '', positions: 1 });
@@ -93,27 +96,59 @@ export default function AdminDashboard() {
     } catch { toast.error('Failed to update'); }
   };
 
-  const createBlogPost = async () => {
-    if (!blogForm.title || !blogForm.content) { toast.error('Title and content required'); return; }
-    try {
-      const res = await fetch(`${API}/blog`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, ...authHeaders,
-        body: JSON.stringify(blogForm)
-      });
-      if (res.ok) {
-        const post = await res.json();
-        setBlogs(prev => [post, ...prev]);
-        setBlogForm({ title: '', content: '', excerpt: '', category: '', image_url: '' });
-        setBlogDialog(false);
-        toast.success('Blog post created');
-      }
-    } catch { toast.error('Failed to create post'); }
+  const openCreateBlog = () => {
+    setEditingPost(null);
+    setBlogForm({ title: '', content: '', excerpt: '', category: '', image_url: '' });
+    setBlogDialog(true);
   };
 
-  const deleteBlogPost = async (postId) => {
+  const openEditBlog = (post) => {
+    setEditingPost(post);
+    setBlogForm({
+      title: post.title || '',
+      content: post.content || '',
+      excerpt: post.excerpt || '',
+      category: post.category || '',
+      image_url: post.image_url || '',
+    });
+    setBlogDialog(true);
+  };
+
+  const saveBlogPost = async () => {
+    if (!blogForm.title || !blogForm.content) { toast.error('Title and content required'); return; }
     try {
-      await fetch(`${API}/blog/${postId}`, { method: 'DELETE', ...authHeaders });
-      setBlogs(prev => prev.filter(b => b.id !== postId));
+      if (editingPost) {
+        const res = await fetch(`${API}/blog/${editingPost.id}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' }, ...authHeaders,
+          body: JSON.stringify(blogForm)
+        });
+        if (res.ok) {
+          setBlogs(prev => prev.map(b => b.id === editingPost.id ? { ...b, ...blogForm } : b));
+          setBlogDialog(false);
+          setEditingPost(null);
+          toast.success('Blog post updated');
+        } else { toast.error('Failed to update post'); }
+      } else {
+        const res = await fetch(`${API}/blog`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, ...authHeaders,
+          body: JSON.stringify(blogForm)
+        });
+        if (res.ok) {
+          const post = await res.json();
+          setBlogs(prev => [post, ...prev]);
+          setBlogDialog(false);
+          toast.success('Blog post published');
+        } else { toast.error('Failed to create post'); }
+      }
+    } catch { toast.error('Something went wrong'); }
+  };
+
+  const confirmDeleteBlog = async () => {
+    if (!deleteConfirm) return;
+    try {
+      await fetch(`${API}/blog/${deleteConfirm.id}`, { method: 'DELETE', ...authHeaders });
+      setBlogs(prev => prev.filter(b => b.id !== deleteConfirm.id));
+      setDeleteConfirm(null);
       toast.success('Post deleted');
     } catch { toast.error('Failed to delete'); }
   };
@@ -215,46 +250,189 @@ export default function AdminDashboard() {
             {/* Blog Tab */}
             <TabsContent value="blog">
               <Card className="border border-slate-100">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-lg font-serif text-navy">Blog Posts ({blogs.length})</CardTitle>
-                  <Dialog open={blogDialog} onOpenChange={setBlogDialog}>
-                    <DialogTrigger asChild>
-                      <Button size="sm" className="bg-gold text-navy hover:bg-gold-light" data-testid="create-blog-btn"><Plus className="h-4 w-4 mr-1" /> New Post</Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-lg">
-                      <DialogHeader><DialogTitle className="font-serif text-navy">Create Blog Post</DialogTitle></DialogHeader>
-                      <div className="space-y-4">
-                        <div><Label className="font-sans">Title</Label><Input value={blogForm.title} onChange={e => setBlogForm({...blogForm, title: e.target.value})} placeholder="Post title" data-testid="blog-title-input" /></div>
-                        <div><Label className="font-sans">Category</Label><Input value={blogForm.category} onChange={e => setBlogForm({...blogForm, category: e.target.value})} placeholder="e.g. Work Visa, Tips" /></div>
-                        <div><Label className="font-sans">Excerpt</Label><Input value={blogForm.excerpt} onChange={e => setBlogForm({...blogForm, excerpt: e.target.value})} placeholder="Short summary" /></div>
-                        <div><Label className="font-sans">Image URL</Label><Input value={blogForm.image_url} onChange={e => setBlogForm({...blogForm, image_url: e.target.value})} placeholder="https://..." /></div>
-                        <div><Label className="font-sans">Content</Label><Textarea value={blogForm.content} onChange={e => setBlogForm({...blogForm, content: e.target.value})} placeholder="Write your post..." className="min-h-[200px]" data-testid="blog-content-input" /></div>
-                        <Button onClick={createBlogPost} className="w-full bg-gold text-navy hover:bg-gold-light font-semibold" data-testid="blog-save-btn">Publish Post</Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                <CardHeader className="flex flex-row items-center justify-between pb-4">
+                  <div>
+                    <CardTitle className="text-lg font-serif text-navy">Blog Posts ({blogs.length})</CardTitle>
+                    <p className="text-sm text-slate-500 font-sans mt-1">Create, edit, and manage your blog content</p>
+                  </div>
+                  <Button size="sm" onClick={openCreateBlog} className="bg-gold text-navy hover:bg-gold-light" data-testid="create-blog-btn">
+                    <Plus className="h-4 w-4 mr-1" /> New Post
+                  </Button>
                 </CardHeader>
-                <CardContent className="overflow-x-auto">
-                  <Table>
-                    <TableHeader><TableRow>
-                      <TableHead>Title</TableHead><TableHead>Category</TableHead><TableHead>Date</TableHead><TableHead>Action</TableHead>
-                    </TableRow></TableHeader>
-                    <TableBody>
+                <CardContent>
+                  {blogs.length === 0 ? (
+                    <div className="text-center py-16">
+                      <Newspaper className="h-12 w-12 text-slate-300 mx-auto mb-4" />
+                      <p className="text-slate-500 font-sans">No blog posts yet.</p>
+                      <Button onClick={openCreateBlog} className="mt-4 bg-gold text-navy hover:bg-gold-light font-semibold">Create Your First Post</Button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                       {blogs.map(b => (
-                        <TableRow key={b.id}>
-                          <TableCell className="font-sans font-medium">{b.title}</TableCell>
-                          <TableCell><Badge variant="outline">{b.category || 'General'}</Badge></TableCell>
-                          <TableCell className="font-sans text-sm">{new Date(b.created_at).toLocaleDateString()}</TableCell>
-                          <TableCell>
-                            <Button size="sm" variant="ghost" onClick={() => deleteBlogPost(b.id)} className="text-red-500 hover:text-red-700" data-testid={`delete-blog-${b.id}`}><Trash2 className="h-4 w-4" /></Button>
-                          </TableCell>
-                        </TableRow>
+                        <div key={b.id} className="group rounded-lg border border-slate-100 bg-white overflow-hidden hover:shadow-md transition-shadow" data-testid={`blog-card-${b.id}`}>
+                          {b.image_url ? (
+                            <div className="relative h-36 overflow-hidden bg-slate-100">
+                              <img src={b.image_url} alt={b.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                              {b.category && <Badge className="absolute top-2 left-2 bg-navy/90 text-white text-xs">{b.category}</Badge>}
+                            </div>
+                          ) : (
+                            <div className="h-36 bg-gradient-to-br from-navy/5 to-gold/5 flex items-center justify-center">
+                              <Image className="h-10 w-10 text-slate-300" />
+                              {b.category && <Badge className="absolute top-2 left-2 bg-navy/90 text-white text-xs">{b.category}</Badge>}
+                            </div>
+                          )}
+                          <div className="p-4">
+                            <h4 className="font-bold text-navy font-serif text-sm leading-snug line-clamp-2">{b.title}</h4>
+                            <p className="text-slate-500 text-xs font-sans mt-1.5 line-clamp-2">{b.excerpt || b.content?.substring(0, 100)}</p>
+                            <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-50">
+                              <span className="text-xs text-slate-400 font-sans">{new Date(b.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                              <div className="flex items-center gap-1">
+                                <Button size="icon" variant="ghost" className="h-7 w-7 text-slate-400 hover:text-navy" onClick={() => setPreviewPost(b)} data-testid={`preview-blog-${b.id}`}>
+                                  <Eye className="h-3.5 w-3.5" />
+                                </Button>
+                                <Button size="icon" variant="ghost" className="h-7 w-7 text-slate-400 hover:text-gold" onClick={() => openEditBlog(b)} data-testid={`edit-blog-${b.id}`}>
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </Button>
+                                <a href={`/blog/${b.id}`} target="_blank" rel="noopener noreferrer">
+                                  <Button size="icon" variant="ghost" className="h-7 w-7 text-slate-400 hover:text-navy" data-testid={`view-blog-${b.id}`}>
+                                    <ExternalLink className="h-3.5 w-3.5" />
+                                  </Button>
+                                </a>
+                                <Button size="icon" variant="ghost" className="h-7 w-7 text-slate-400 hover:text-red-500" onClick={() => setDeleteConfirm(b)} data-testid={`delete-blog-${b.id}`}>
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       ))}
-                      {blogs.length === 0 && <TableRow><TableCell colSpan={4} className="text-center py-8 text-slate-400">No posts yet</TableCell></TableRow>}
-                    </TableBody>
-                  </Table>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
+
+              {/* Create / Edit Blog Dialog */}
+              <Dialog open={blogDialog} onOpenChange={(open) => { setBlogDialog(open); if (!open) setEditingPost(null); }}>
+                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="font-serif text-navy text-xl">
+                      {editingPost ? 'Edit Blog Post' : 'Create New Blog Post'}
+                    </DialogTitle>
+                    <p className="text-sm text-slate-500 font-sans">{editingPost ? 'Update your post details below' : 'Fill in the details to publish a new blog post'}</p>
+                  </DialogHeader>
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mt-2">
+                    {/* Main Content - Left */}
+                    <div className="md:col-span-3 space-y-4">
+                      <div>
+                        <Label className="font-sans font-medium text-sm">Title *</Label>
+                        <Input value={blogForm.title} onChange={e => setBlogForm({...blogForm, title: e.target.value})} placeholder="Enter a compelling title..." data-testid="blog-title-input" className="mt-1.5 h-11" />
+                      </div>
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <Label className="font-sans font-medium text-sm">Content *</Label>
+                          <span className="text-xs text-slate-400 font-sans">{blogForm.content.length} characters</span>
+                        </div>
+                        <Textarea value={blogForm.content} onChange={e => setBlogForm({...blogForm, content: e.target.value})} placeholder="Write your blog post content here. Use line breaks to separate paragraphs..." className="min-h-[280px] font-sans text-sm leading-relaxed" data-testid="blog-content-input" />
+                      </div>
+                    </div>
+                    {/* Sidebar - Right */}
+                    <div className="md:col-span-2 space-y-4">
+                      <div>
+                        <Label className="font-sans font-medium text-sm">Category</Label>
+                        <Select value={blogForm.category} onValueChange={v => setBlogForm({...blogForm, category: v})}>
+                          <SelectTrigger className="mt-1.5 h-11" data-testid="blog-category-select"><SelectValue placeholder="Select category" /></SelectTrigger>
+                          <SelectContent>
+                            {['Work Visa', 'Tips', 'News', 'Study Abroad', 'Travel', 'Success Story', 'Immigration Law', 'Employer Guide'].map(c => (
+                              <SelectItem key={c} value={c}>{c}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <Label className="font-sans font-medium text-sm">Excerpt</Label>
+                          <span className="text-xs text-slate-400 font-sans">{blogForm.excerpt.length}/160</span>
+                        </div>
+                        <Textarea value={blogForm.excerpt} onChange={e => setBlogForm({...blogForm, excerpt: e.target.value.slice(0, 160)})} placeholder="A brief summary for previews..." className="min-h-[80px] text-sm" maxLength={160} />
+                      </div>
+                      <div>
+                        <Label className="font-sans font-medium text-sm">Featured Image URL</Label>
+                        <Input value={blogForm.image_url} onChange={e => setBlogForm({...blogForm, image_url: e.target.value})} placeholder="https://images.unsplash.com/..." className="mt-1.5" />
+                        {blogForm.image_url && (
+                          <div className="mt-2 relative rounded-lg overflow-hidden border border-slate-100 h-32">
+                            <img src={blogForm.image_url} alt="Preview" className="w-full h-full object-cover" onError={e => { e.target.style.display = 'none'; }} />
+                          </div>
+                        )}
+                      </div>
+                      {editingPost && (
+                        <div className="p-3 rounded-lg bg-slate-50 border border-slate-100 text-xs text-slate-500 font-sans space-y-1">
+                          <p><strong>Post ID:</strong> {editingPost.id}</p>
+                          <p><strong>Author:</strong> {editingPost.author}</p>
+                          <p><strong>Created:</strong> {new Date(editingPost.created_at).toLocaleString()}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-end gap-3 mt-4 pt-4 border-t border-slate-100">
+                    <Button variant="outline" onClick={() => { setBlogDialog(false); setEditingPost(null); }}>Cancel</Button>
+                    <Button onClick={saveBlogPost} className="bg-gold text-navy hover:bg-gold-light font-semibold px-8" data-testid="blog-save-btn">
+                      {editingPost ? 'Save Changes' : 'Publish Post'}
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              {/* Delete Confirmation Dialog */}
+              <Dialog open={!!deleteConfirm} onOpenChange={open => !open && setDeleteConfirm(null)}>
+                <DialogContent className="max-w-sm">
+                  <DialogHeader>
+                    <DialogTitle className="font-serif text-navy">Delete Blog Post?</DialogTitle>
+                  </DialogHeader>
+                  <p className="text-sm text-slate-600 font-sans">
+                    Are you sure you want to delete <strong>"{deleteConfirm?.title}"</strong>? This action cannot be undone.
+                  </p>
+                  <div className="flex justify-end gap-3 mt-4">
+                    <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Cancel</Button>
+                    <Button onClick={confirmDeleteBlog} className="bg-red-600 text-white hover:bg-red-700 font-semibold" data-testid="confirm-delete-blog-btn">
+                      <Trash2 className="h-4 w-4 mr-1" /> Delete
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              {/* Preview Dialog */}
+              <Dialog open={!!previewPost} onOpenChange={open => !open && setPreviewPost(null)}>
+                <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+                  {previewPost && (
+                    <>
+                      <DialogHeader>
+                        <div className="flex items-center gap-2 mb-2">
+                          {previewPost.category && <Badge className="bg-navy/10 text-navy text-xs">{previewPost.category}</Badge>}
+                          <span className="text-xs text-slate-400 font-sans">{new Date(previewPost.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                        </div>
+                        <DialogTitle className="font-serif text-navy text-2xl leading-snug">{previewPost.title}</DialogTitle>
+                        {previewPost.excerpt && <p className="text-slate-500 text-sm font-sans italic mt-1">{previewPost.excerpt}</p>}
+                      </DialogHeader>
+                      {previewPost.image_url && (
+                        <img src={previewPost.image_url} alt={previewPost.title} className="w-full h-48 object-cover rounded-lg mt-2" />
+                      )}
+                      <div className="text-slate-700 text-sm font-sans leading-relaxed whitespace-pre-line mt-2 max-h-[40vh] overflow-y-auto">
+                        {previewPost.content}
+                      </div>
+                      <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-100">
+                        <Button variant="outline" onClick={() => { setPreviewPost(null); openEditBlog(previewPost); }}>
+                          <Pencil className="h-4 w-4 mr-1" /> Edit Post
+                        </Button>
+                        <a href={`/blog/${previewPost.id}`} target="_blank" rel="noopener noreferrer">
+                          <Button className="bg-navy text-white hover:bg-navy-light">
+                            <ExternalLink className="h-4 w-4 mr-1" /> View on Site
+                          </Button>
+                        </a>
+                      </div>
+                    </>
+                  )}
+                </DialogContent>
+              </Dialog>
             </TabsContent>
 
             {/* Payments Tab */}

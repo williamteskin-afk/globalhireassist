@@ -236,6 +236,88 @@ class GlobalHireAPITester:
         else:
             self.log_result("POST /api/jobs - Create job listing", False, f"Status: {status}, Data: {data}")
             return None
+
+    def test_admin_blog_management(self):
+        """Test admin blog management features - key focus of iteration 3"""
+        print("\n🔍 Testing Admin Blog Management (Iteration 3 Focus)...")
+        
+        # Set the admin session token provided in the review request
+        admin_token = "admin_session_1773937338274"
+        self.session_token = admin_token
+        
+        # Verify admin auth first
+        success, status, data = self.make_request('GET', 'auth/me', expected_status=200)
+        if not success or not data.get('is_admin'):
+            self.log_result("Admin Blog Management - Auth Check", False, "Admin authentication failed")
+            return
+        
+        # Test creating a new blog post
+        new_post_data = {
+            "title": "Test Blog Post - Automated Testing",
+            "content": "This is a test blog post created during automated testing. It should demonstrate all the key features of the blog management system including content creation, category assignment, and metadata handling.",
+            "excerpt": "A test blog post to validate the upgraded blog management system with professional card-based editor functionality.",
+            "category": "Tips",
+            "image_url": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800"
+        }
+        
+        success, status, created_post = self.make_request('POST', 'blog', data=new_post_data, expected_status=200)
+        if success and created_post.get('id'):
+            self.log_result("POST /api/blog - Create new blog post", True, f"Created post ID: {created_post.get('id')}")
+            test_post_id = created_post.get('id')
+        else:
+            self.log_result("POST /api/blog - Create new blog post", False, f"Status: {status}, Data: {created_post}")
+            return
+        
+        # Test updating existing post - specifically post-002 as mentioned in review request
+        update_data = {
+            "title": "Updated: Top 5 Tips for a Successful Visa Interview - Enhanced Edition",
+            "content": "Your visa interview is one of the most critical steps in the visa application process. Here are five essential tips to help you succeed:\n\n1. Prepare Your Documents\nOrganize all required documents in a neat folder. Include your passport, DS-160 confirmation, appointment letter, photo, and supporting financial documents.\n\n2. Dress Professionally\nFirst impressions matter. Dress in business or business-casual attire to show you take the process seriously.\n\n3. Be Honest and Direct\nAnswer questions truthfully and concisely. Don't provide unnecessary information, but don't be evasive either.\n\n4. Know Your Purpose\nBe clear about why you're traveling to the U.S. and what you plan to do there. Have specific details ready.\n\n5. Show Strong Ties to Home\nDemonstrate that you have reasons to return to your home country, such as family, property, or employment.\n\nBonus Tip: Practice common interview questions beforehand and stay calm during the process.",
+            "excerpt": "Prepare for your visa interview with these proven strategies from our expert consultants. Updated with bonus tips and enhanced guidance.",
+            "category": "Tips", 
+            "image_url": "https://images.unsplash.com/photo-1744580389912-e424d67b9749?w=800"
+        }
+        
+        success, status, data = self.make_request('PUT', 'blog/post-002', data=update_data, expected_status=200)
+        if success:
+            self.log_result("PUT /api/blog/post-002 - Update existing post", True, "Successfully updated post-002")
+        else:
+            self.log_result("PUT /api/blog/post-002 - Update existing post", False, f"Status: {status}, Data: {data}")
+        
+        # Test getting the updated post to verify changes
+        success, status, updated_post = self.make_request('GET', 'blog/post-002', expected_status=200)
+        if success and updated_post.get('title') and 'Updated:' in updated_post.get('title', ''):
+            self.log_result("GET /api/blog/post-002 - Verify post update", True, "Post successfully updated with new title")
+        else:
+            self.log_result("GET /api/blog/post-002 - Verify post update", False, f"Status: {status}, Update not reflected")
+        
+        # Test updating our newly created post
+        test_update_data = {
+            "title": "Updated Test Blog Post - Automated Testing Complete",
+            "content": new_post_data["content"] + "\n\nThis post has been updated during testing to verify the PUT endpoint functionality.",
+            "excerpt": "Updated test post excerpt with additional testing validation content.",
+            "category": "News",
+            "image_url": new_post_data["image_url"]
+        }
+        
+        success, status, data = self.make_request('PUT', f'blog/{test_post_id}', data=test_update_data, expected_status=200)
+        if success:
+            self.log_result(f"PUT /api/blog/{test_post_id} - Update created post", True, "Successfully updated test post")
+        else:
+            self.log_result(f"PUT /api/blog/{test_post_id} - Update created post", False, f"Status: {status}")
+        
+        # Test deleting the test post we created
+        success, status, data = self.make_request('DELETE', f'blog/{test_post_id}', expected_status=200)
+        if success:
+            self.log_result(f"DELETE /api/blog/{test_post_id} - Delete test post", True, "Successfully deleted test post")
+        else:
+            self.log_result(f"DELETE /api/blog/{test_post_id} - Delete test post", False, f"Status: {status}")
+        
+        # Verify deletion by attempting to get the deleted post
+        success, status, data = self.make_request('GET', f'blog/{test_post_id}', expected_status=404)
+        if success:
+            self.log_result(f"GET /api/blog/{test_post_id} - Verify deletion", True, "Correctly returns 404 for deleted post")
+        else:
+            self.log_result(f"GET /api/blog/{test_post_id} - Verify deletion", False, f"Expected 404, got {status}")
         
         # Clear admin token after testing
         self.session_token = None
@@ -279,6 +361,10 @@ class GlobalHireAPITester:
         self.test_employer_registration()
         self.test_stripe_checkout()
         self.test_admin_auth_and_jobs()
+        
+        # Test blog management features - key focus for iteration 3
+        self.test_admin_blog_management()
+        
         self.test_auth_endpoints_without_auth()
         
         # Print summary
