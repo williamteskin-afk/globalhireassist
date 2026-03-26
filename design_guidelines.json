@@ -1,0 +1,96 @@
+{
+  "theme": "light",
+  "archetype": "Jewel & Luxury / Corporate Premium",
+  "design_philosophy": "A 'godly' corporate premium aesthetic. Restraint combined with intentionality. Deep Navy Blue provides authority and trust, while Gold accents offer a premium, successful feel. Clean, structural typography and spacious layouts.",
+  "colors": {
+    "primary": "#0B2447",
+    "primary_hover": "#081b36",
+    "accent_gold": "#C5A059",
+    "accent_gold_hover": "#b08d4a",
+    "background": "#FFFFFF",
+    "surface": "#F8F9FA",
+    "surface_alt": "#F1F5F9",
+    "text_main": "#0F172A",
+    "text_muted": "#64748B",
+    "border": "#E2E8F0"
+  },
+  "typography": {
+    "headings": {
+      "font_family": "Poppins, sans-serif",
+      "style": "tracking-tight font-semibold to font-bold",
+      "h1": "text-4xl sm:text-5xl lg:text-6xl leading-tight",
+      "h2": "text-3xl sm:text-4xl leading-tight",
+      "h3": "text-xl sm:text-2xl leading-snug"
+    },
+    "body": {
+      "font_family": "Open Sans, sans-serif",
+      "style": "leading-relaxed",
+      "base": "text-base",
+      "small": "text-sm text-slate-500",
+      "large": "text-lg text-slate-700"
+    },
+    "labels": "uppercase tracking-[0.2em] text-xs font-bold text-accent_gold"
+  },
+  "spacing_and_layout": {
+    "section_padding": "py-20 md:py-32",
+    "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+    "grid_bento": "grid grid-cols-1 md:grid-cols-12 gap-6 or gap-8",
+    "border_radius": "rounded-xl for cards, rounded-full for pills/buttons"
+  },
+  "surface_strategies": {
+    "header": "Crystal Glass: bg-white/90 backdrop-blur-xl border-b border-slate-200/50. Sticky top-0 z-50.",
+    "marketing_cards": "Crisp white background (bg-white), 1px border (border-slate-200), soft ambient shadow (shadow-sm). On hover: border-accent_gold/50, shadow-xl, -translate-y-1 transition-all duration-300.",
+    "dashboard_cards": "Flat background (bg-white), 1px subtle border (border-slate-200), no shadow. Dense and compact.",
+    "hero_overlay": "Gradient overlay over hero image to ensure text contrast: bg-gradient-to-r from-[#0B2447]/90 via-[#0B2447]/60 to-transparent."
+  },
+  "components_strategy": {
+    "buttons": {
+      "primary": "bg-[#C5A059] text-white hover:bg-[#b08d4a] shadow-md font-semibold transition-all px-6 py-3 rounded-md",
+      "secondary": "bg-[#0B2447] text-white hover:bg-[#081b36] shadow-md font-semibold transition-all px-6 py-3 rounded-md",
+      "outline": "border-2 border-[#0B2447] text-[#0B2447] hover:bg-[#F8F9FA] font-semibold transition-all px-6 py-3 rounded-md"
+    },
+    "forms": "Use Shadcn UI forms. Inputs should have generous padding (h-12), rounded-md borders, and focus:ring-accent_gold.",
+    "navigation": "Clear, non-hamburger on desktop. Logo left, Links center, Primary CTA ('Apply Now') right. Hamburger for mobile only."
+  },
+  "image_urls": {
+    "hero_background": {
+      "url": "https://images.pexels.com/photos/34134/pexels-photo.jpg",
+      "description": "Modern bright airport corridor with glass, representing global travel and success."
+    },
+    "global_map_texture": {
+      "url": "https://static.prod-images.emergentagent.com/jobs/d0f751c4-32ad-4e3b-a8a2-91a075e6fa26/images/abe9ed48664b9ce6e4681dc7733e75cbaf9649e802283442a9c930f0be03b125.png",
+      "description": "Abstract minimalist global world map in deep navy blue with subtle shimmering gold nodes. Use as a background for 'How it Works' or 'Global Reach' sections."
+    },
+    "trust_seal": {
+      "url": "https://static.prod-images.emergentagent.com/jobs/d0f751c4-32ad-4e3b-a8a2-91a075e6fa26/images/1c6aad278836129033c92b11e069fccbadb5a6489cc210dd5dfe90e0e45477ed.png",
+      "description": "3D metallic gold premium trust seal. Use in 'Why Choose Us' or Footer for authority."
+    },
+    "visa_work": {
+      "url": "https://images.pexels.com/photos/6170656/pexels-photo-6170656.jpeg",
+      "description": "Professionals shaking hands in modern office. Use for Work Visa card/page."
+    },
+    "visa_study": {
+      "url": "https://images.pexels.com/photos/7683629/pexels-photo-7683629.jpeg",
+      "description": "College students walking on campus. Use for Study Visa card/page."
+    },
+    "visa_tourist": {
+      "url": "https://images.pexels.com/photos/36729290/pexels-photo-36729290.jpeg",
+      "description": "Friends reading map outdoors. Use for Tourist/Visit Visa card/page."
+    },
+    "employer_hero": {
+      "url": "https://images.pexels.com/photos/7644148/pexels-photo-7644148.jpeg",
+      "description": "Corporate business professionals in a premium office. Use for Employers page."
+    }
+  },
+  "instructions_to_main_agent": [
+    "Build the marketing pages (Home, About, Programs, Employers) with raw HTML/Tailwind for layout freedom. Use overlapping elements and bento grids.",
+    "Integrate Shadcn UI strictly for interactive components: forms (Apply, Contact, Employer Registration), Dropdowns, Accordions (for FAQs), Dialogs, and Tabs.",
+    "The Admin Dashboard must be a distinct layout. Use a sidebar and top header. Cards should be flat and dense.",
+    "For avatars in the testimonial section, use 'https://i.pravatar.cc/150?u=1' (increment u parameter for different faces).",
+    "All interactive elements MUST include a 'data-testid' attribute (e.g., data-testid='apply-now-btn').",
+    "Ensure headings use 'font-poppins' and body text uses 'font-sans' (configured to Open Sans). You MUST install these fonts from Google Fonts in the index.html or global css.",
+    "Do not use generic placeholder image URLs. Only use the image_urls provided in this JSON.",
+    "Add 'framer-motion' for subtle scroll-based entrance animations (fade-up) to give a premium feel.",
+    "Install 'lucide-react' for all icons."
+  ]
+}
