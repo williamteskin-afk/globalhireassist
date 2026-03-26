@@ -13,6 +13,7 @@ from datetime import datetime, timezone, timedelta
 from passlib.context import CryptContext
 import jwt
 from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionResponse, CheckoutStatusResponse, CheckoutSessionRequest
+from twilio.rest import Client
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -28,6 +29,13 @@ security = HTTPBearer()
 JWT_SECRET = os.environ.get('JWT_SECRET')
 JWT_ALGORITHM = os.environ.get('JWT_ALGORITHM', 'HS256')
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get('ACCESS_TOKEN_EXPIRE_MINUTES', 1440))
+
+# Twilio client
+twilio_client = Client(
+    os.environ.get('TWILIO_ACCOUNT_SID'),
+    os.environ.get('TWILIO_AUTH_TOKEN')
+)
+TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER')
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
@@ -154,6 +162,29 @@ def create_access_token(data: dict):
     encoded_jwt = jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
     return encoded_jwt
 
+async def send_sms(phone_number: str, message: str):
+    """Send SMS notification using Twilio"""
+    try:
+        # Format phone number to E.164 format if not already
+        if not phone_number.startswith('+'):
+            phone_number = f'+{phone_number}'
+        
+        # Don't send if it's the same as Twilio number (for testing purposes)
+        if phone_number == TWILIO_PHONE_NUMBER:
+            logger.info(f"Skipping SMS to Twilio number itself: {phone_number}")
+            return True
+        
+        message_sent = twilio_client.messages.create(
+            body=message,
+            from_=TWILIO_PHONE_NUMBER,
+            to=phone_number
+        )
+        logger.info(f"SMS sent successfully to {phone_number}: {message_sent.sid}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send SMS to {phone_number}: {str(e)}")
+        return False
+
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     try:
         token = credentials.credentials
@@ -215,6 +246,11 @@ async def create_application(app_data: ApplicationCreate):
     app_dict['updated_at'] = app_dict['updated_at'].isoformat()
     
     await db.applications.insert_one(app_dict)
+    
+    # Send SMS notification
+    sms_message = f"Hello {application.full_name}! Your visa application (ID: {application.id[:8]}) has been received by Global Hire Assist. We'll review your documents and contact you soon. Track status at globalhireassist.com"
+    await send_sms(application.phone, sms_message)
+    
     return application
 
 @api_router.get("/applications", response_model=List[Application])
@@ -229,12 +265,31 @@ async def get_applications(current_user: dict = Depends(get_current_user)):
 
 @api_router.put("/applications/{application_id}")
 async def update_application(application_id: str, update_data: ApplicationUpdate, current_user: dict = Depends(get_current_user)):
+    # Get application details first
+    application = await db.applications.find_one({"id": application_id}, {"_id": 0})
+    
+    if not application:
+        raise HTTPException(status_code=404, detail="Application not found")
+    
     result = await db.applications.update_one(
         {"id": application_id},
         {"$set": {"status": update_data.status, "updated_at": datetime.now(timezone.utc).isoformat()}}
     )
+    
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Application not found")
+    
+    # Send SMS notification about status change
+    status_messages = {
+        "approved": f"Great news {application['full_name']}! Your visa application has been APPROVED. Check your email for next steps. - Global Hire Assist",
+        "rejected": f"Hello {application['full_name']}, unfortunately your visa application was not approved. Please contact us for details. - Global Hire Assist",
+        "processing": f"Hi {application['full_name']}, your visa application is now being processed. We'll keep you updated. - Global Hire Assist",
+        "pending": f"Hello {application['full_name']}, your application status has been updated to pending review. - Global Hire Assist"
+    }
+    
+    if update_data.status in status_messages:
+        await send_sms(application['phone'], status_messages[update_data.status])
+    
     return {"message": "Application updated successfully"}
 
 # Employer routes
@@ -358,6 +413,16 @@ async def get_payment_status(session_id: str):
                 "updated_at": datetime.now(timezone.utc).isoformat()
             }}
         )
+        
+        # Send SMS on successful payment
+        if checkout_status.payment_status == "paid" and existing_transaction.get('user_email'):
+            # Get application details
+            app_id = existing_transaction.get('metadata', {}).get('application_id')
+            if app_id:
+                application = await db.applications.find_one({"id": app_id}, {"_id": 0})
+                if application:
+                    sms_message = f"Payment received! Thank you {application['full_name']}. Your ${checkout_status.amount_total / 100:.2f} payment was successful. Your visa application is now being processed. - Global Hire Assist"
+                    await send_sms(application['phone'], sms_message)
     
     return {
         "session_id": session_id,
